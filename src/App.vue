@@ -21,11 +21,12 @@
       <div
         class="p-4 w-auto min-w-[14rem] max-w-[20rem] break-words h-auto bg-white shadow-xl text-black rounded-md mx-3"
         v-for="item in diary"
-        :key="item"
+        :key="item.id"
       >
         <h4>วันที่ {{ formatThaiDate(item.date) }}</h4>
         <h5 class="mt-2">เนื้อหา</h5>
         <p>{{ item.content }}</p>
+        <button class="w-full mt-2 btn btn-outline btn-error" @click="deleteStory(item.id)">DELETE</button>
       </div>
     </div>
   </div>
@@ -47,24 +48,31 @@ export default {
         const newStory = {
           id: this.nextId++,
           content: this.story,
-          date: new Date()
+          date: new Date().toISOString() // Store date as ISO string
         }
         this.diary.push(newStory)
         this.story = ''
+        localStorage.setItem('story', JSON.stringify(this.diary))
       }
     },
-    formatThaiDate(date) {
-      const result = date.toLocaleDateString('th-TH', {
+    formatThaiDate(dateString) {
+      const date = new Date(dateString)
+      return date.toLocaleDateString('th-TH', {
         year: 'numeric',
         month: 'long',
         day: 'numeric'
       })
-
-      return result
+    },
+    deleteStory(id) {
+      this.diary = this.diary.filter((item) => item.id !== id)
+      localStorage.setItem('story', JSON.stringify(this.diary))
     }
   },
   mounted() {
     document.title = this.titlename
+    const storedDiary = localStorage.getItem('story')
+    this.diary = storedDiary ? JSON.parse(storedDiary) : []
+    this.nextId = this.diary.length ? Math.max(...this.diary.map((item) => item.id)) + 1 : 1
   }
 }
 </script>
